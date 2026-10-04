@@ -1,0 +1,58 @@
+/* ──────────────────────────────────────────────────────────────
+   Continuo design tokens
+   Raw CSS variables (spec §2) + Tailwind v4 theme mapping.
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Colour */
+  --ink: #0f1a17;
+  --forest: #16302a;
+  --moss: #2f4a41;
+  --ivory: #f7f3ec;
+  --linen: #ede6da;
+  --champagne: #c8a96a;
+  --champagne-soft: #e4d3a8;
+  --sage: #8fa89a;
+  --stone: #6b6b63;
+  --hairline: rgba(200, 169, 106, 0.28);
+  --danger: #9b3d3d;
+  --paper: #fbf8f2; /* row hover / selected surfaces */
+
+  /* Type */
+  --ff-display: 'Cormorant Garamond', 'Fraunces', Georgia, serif;
+  --ff-ui: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ff-read: 'Newsreader', 'Source Serif 4', Georgia, serif;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Shape */
+  --r-card: 20px;
+  --r-input: 14px;
+  --shadow: 0 30px 80px -40px rgba(15, 26, 23, 0.35);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-forest: var(--forest);
+  --color-moss: var(--moss);
+  --color-ivory: var(--ivory);
+  --color-linen: var(--linen);
+  --color-champagne: var(--champagne);
+  --color-champagne-soft: var(--champagne-soft);
+  --color-sage: var(--sage);
+  --color-stone: var(--stone);
+  --color-hairline: var(--hairline);
+  --color-danger: var(--danger);
+  --color-paper: var(--paper);
+
+  --font-display: var(--ff-display);
+  --font-sans: var(--ff-ui);
+  --font-read: var(--ff-read);
+
+  --radius-card: var(--r-card);
+  --radius-input: var(--r-input);
+
+  --ease-lux: var(--ease);
+  --shadow-lux: var(--shadow);
+}
