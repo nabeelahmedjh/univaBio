@@ -1,10 +1,25 @@
+import '@fontsource/cormorant-garamond/400.css'
+import '@fontsource/cormorant-garamond/400-italic.css'
+import '@fontsource/cormorant-garamond/500.css'
+import '@fontsource/cormorant-garamond/500-italic.css'
+import '@fontsource/cormorant-garamond/600.css'
+import '@fontsource/manrope/400.css'
+import '@fontsource/manrope/500.css'
+import '@fontsource/manrope/600.css'
+import '@fontsource/newsreader/400.css'
+import '@fontsource/newsreader/400-italic.css'
+import '@fontsource/newsreader/600.css'
+import './styles/globals.css'
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { Providers } from './app/providers'
+import { AppRouter } from './app/router'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Providers>
+      <AppRouter />
+    </Providers>
   </StrictMode>,
 )
