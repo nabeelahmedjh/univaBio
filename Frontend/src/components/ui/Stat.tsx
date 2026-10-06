@@ -10,11 +10,7 @@ export function CountUp({ value, duration = 1.2 }: { value: number; duration?: n
   const [display, setDisplay] = useState(0)
 
   useEffect(() => {
-    if (!inView) return
-    if (reduce) {
-      setDisplay(value)
-      return
-    }
+    if (!inView || reduce) return
     const controls = animate(0, value, {
       duration,
       ease: [0.16, 1, 0.3, 1],
@@ -25,7 +21,7 @@ export function CountUp({ value, duration = 1.2 }: { value: number; duration?: n
 
   return (
     <span ref={ref} aria-label={String(value)}>
-      {display.toLocaleString('en-GB')}
+      {(reduce ? value : display).toLocaleString('en-GB')}
     </span>
   )
 }

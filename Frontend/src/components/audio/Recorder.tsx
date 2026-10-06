@@ -13,13 +13,6 @@ const BARS = 40
 /** Preferred → fallback. iOS Safari only supports audio/mp4. */
 const MIME_CANDIDATES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']
 
-export function isRecordingSupported(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    !!navigator.mediaDevices?.getUserMedia &&
-    typeof window.MediaRecorder !== 'undefined'
-  )
-}
 
 function pickMime(): string | undefined {
   return MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported?.(m))
@@ -73,6 +66,8 @@ export function Recorder({ patientId, onComplete, onActiveChange }: RecorderProp
 
   useEffect(() => cleanup, [cleanup])
 
+  const drawRef = useRef<() => void>(() => {})
+
   const draw = useCallback(() => {
     const a = analyser.current
     if (!a) return
@@ -86,8 +81,12 @@ export function Recorder({ patientId, onComplete, onActiveChange }: RecorderProp
       const el = bars.current[i]
       if (el) el.style.transform = `scaleY(${Math.max(0.08, v * 1.15)})`
     }
-    raf.current = requestAnimationFrame(draw)
+    raf.current = requestAnimationFrame(() => drawRef.current())
   }, [])
+
+  useEffect(() => {
+    drawRef.current = draw
+  }, [draw])
 
   const currentElapsed = () => accumulated.current + (Date.now() - startedAt.current) / 1000
 
