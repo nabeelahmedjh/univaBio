@@ -21,7 +21,10 @@ export function Waveform({ file, onReady, height = 56, label = 'recording' }: Wa
   const [failed, setFailed] = useState(false)
   const url = useMemo(() => URL.createObjectURL(file), [file])
   const onReadyRef = useRef(onReady)
-  onReadyRef.current = onReady
+
+  useEffect(() => {
+    onReadyRef.current = onReady
+  }, [onReady])
 
   useEffect(() => {
     if (!container.current) return

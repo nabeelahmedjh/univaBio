@@ -8,10 +8,10 @@ const DoctorAuth = lazy(() => import('@/pages/DoctorAuth/DoctorAuth'))
 const DoctorDashboard = lazy(() => import('@/pages/DoctorDashboard/DoctorDashboard'))
 const DoctorSession = lazy(() => import('@/pages/DoctorSession/DoctorSession'))
 const PatientEntry = lazy(() => import('@/pages/PatientEntry/PatientEntry'))
-// const PatientSessions = lazy(() => import('@/pages/PatientSessions/PatientSessions'))
-// const AdminLogin = lazy(() => import('@/pages/AdminLogin/AdminLogin'))
-// const AdminPanel = lazy(() => import('@/pages/AdminPanel/AdminPanel'))
-// const NotFound = lazy(() => import('@/pages/NotFound/NotFound'))
+const PatientSessions = lazy(() => import('@/pages/PatientSessions/PatientSessions'))
+const AdminLogin = lazy(() => import('@/pages/AdminLogin/AdminLogin'))
+const AdminPanel = lazy(() => import('@/pages/AdminPanel/AdminPanel'))
+const NotFound = lazy(() => import('@/pages/NotFound/NotFound'))
 
 /** Top-level route key: sub-navigation inside a page (e.g. ?s=) must not re-animate. */
 function routeKey(pathname: string) {
@@ -49,7 +49,7 @@ export function AppRouter() {
             }
           />
           <Route path="/patient" element={<PatientEntry />} />
-          {/* <Route path="/patient/:id" element={<PatientSessions />} />
+          <Route path="/patient/:id" element={<PatientSessions />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route
             path="/admin/panel"
@@ -59,7 +59,7 @@ export function AppRouter() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<NotFound />} /> */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>
     </Suspense>

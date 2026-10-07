@@ -13,7 +13,10 @@ export function useLeaveGuard(when: boolean) {
   const navigate = useNavigate()
   const [pending, setPending] = useState<string | null>(null)
   const whenRef = useRef(when)
-  whenRef.current = when
+
+  useEffect(() => {
+    whenRef.current = when
+  }, [when])
 
   useEffect(() => {
     if (!when) return
