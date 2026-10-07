@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { DoctorShell } from '@/app/layouts/DoctorShell'
 import { Dropzone } from '@/components/audio/Dropzone'
-import { isRecordingSupported, Recorder } from '@/components/audio/Recorder'
+import { Recorder } from '@/components/audio/Recorder'
+import { isRecordingSupported } from '@/lib/audio'
 import { EASE } from '@/components/motion/easing'
 import { PageTransition } from '@/components/motion/PageTransition'
 import { Button, ButtonLink } from '@/components/ui/Button'
@@ -160,8 +161,8 @@ export default function DoctorSession() {
   useEffect(() => {
     if (!patientId.trim()) {
       verifySeq.current++
-      setVerify({ state: 'idle' })
-      return
+      const t = window.setTimeout(() => setVerify({ state: 'idle' }), 0)
+      return () => window.clearTimeout(t)
     }
     const t = window.setTimeout(() => runVerify(patientId), 300)
     return () => window.clearTimeout(t)

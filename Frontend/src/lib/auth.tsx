@@ -7,7 +7,7 @@ import type { DoctorProfile, Role } from './types'
  * Used while authentication is disabled (AUTH_ENABLED=false) so doctor
  * screens still have a name to greet. Matches the mock seed.
  */
-export const DEMO_DOCTOR: DoctorProfile = {
+const DEMO_DOCTOR: DoctorProfile = {
   id: 'doc_1',
   name: 'Dr. Amara Whitfield',
   doctorId: 'DR-2048',
