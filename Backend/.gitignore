@@ -6,7 +6,12 @@ venv/
 
 # Env & secrets
 .env
+.env.*
+!.env.example
 
 # Database
 *.db
 *.sqlite3
+
+# Uploaded audio (transcription input)
+uploads/
