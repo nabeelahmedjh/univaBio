@@ -1,14 +1,14 @@
 /**
- * In-browser mock backend implementing `ContinuoApi`.
+ * In-browser mock backend implementing `CareMemoryApi`.
  *
  * - Data is seeded relative to "now" and persisted in localStorage so new
  *   sessions/doctors survive a refresh. Call `resetMockDb()` from the console
- *   (window.__continuoResetMock) to start fresh.
+ *   (window.__carememoryResetMock) to start fresh.
  * - Every call has a small randomised latency so loading states are visible.
  *
- * Demo credentials:  Doctor  DR-2048 / continuo     Admin  admin / continuo
+ * Demo credentials:  Doctor  DR-2048 / carememory     Admin  admin / carememory
  */
-import type { ContinuoApi } from '../api'
+import type { CareMemoryApi } from '../api'
 import { AUTH_ENABLED } from '../config'
 import { ApiError } from '../errors'
 import { getAuth } from '../token'
@@ -16,7 +16,7 @@ import { startOfDay, startOfWeek } from '../format'
 import type { ActivitySession, AdminDoctor, PatientListItem, SessionSummary } from '../types'
 import { ADMIN_CREDENTIALS, SEED_DOCTORS, SEED_PATIENTS, TOPICS, buildMarkdown } from './data'
 
-const KEY = 'continuo.mock.v1'
+const KEY = 'carememory.mock.v1'
 const RESEED_AFTER_MS = 3 * 86_400_000
 const PROCESSING_MS = 9000
 
@@ -139,7 +139,7 @@ export function resetMockDb() {
 }
 
 if (typeof window !== 'undefined') {
-  ;(window as unknown as Record<string, unknown>).__continuoResetMock = resetMockDb
+  ;(window as unknown as Record<string, unknown>).__carememoryResetMock = resetMockDb
 }
 
 /* ─── helpers ───────────────────────────────────────────────── */
@@ -179,7 +179,7 @@ function genPassword() {
 
 /* ─── API ───────────────────────────────────────────────────── */
 
-export const mockApi: ContinuoApi = {
+export const mockApi: CareMemoryApi = {
   async loginDoctor({ doctorId, password }) {
     await sleep(900 + Math.random() * 500)
     const d = db.doctors.find((x) => x.doctorId.toLowerCase() === doctorId.trim().toLowerCase())

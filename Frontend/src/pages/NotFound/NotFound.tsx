@@ -35,7 +35,7 @@ export default function NotFound() {
 
           <div className="mt-8">
             <ButtonLink to="/" variant="primary">
-              Return to Continuo
+              Return to Care Memory
             </ButtonLink>
           </div>
         </main>

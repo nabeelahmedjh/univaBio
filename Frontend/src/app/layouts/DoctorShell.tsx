@@ -54,7 +54,7 @@ export function DoctorShell({ children }: { children: ReactNode }) {
     <div className="on-light min-h-dvh bg-ivory">
       {/* Desktop rail */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col items-center bg-forest py-6 md:flex">
-        <Link to="/doctor/dashboard" aria-label="Continuo dashboard" className="mb-10">
+        <Link to="/doctor/dashboard" aria-label="Care Memory dashboard" className="mb-10">
           <LogoMark size={34} />
         </Link>
         <nav aria-label="Primary" className="flex flex-1 flex-col items-center gap-3">

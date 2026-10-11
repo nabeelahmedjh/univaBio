@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 /** Sets document title and robots meta. All pages except `/` are noindex. */
 export function useDocumentMeta(title: string, { index = false }: { index?: boolean } = {}) {
   useEffect(() => {
-    document.title = title ? `${title} · Continuo` : 'Continuo · Every conversation, continued.'
+    document.title = title ? `${title} · Care Memory` : 'Care Memory · Every conversation, remembered.'
     let meta = document.querySelector<HTMLMetaElement>('meta[name="robots"]')
     if (!meta) {
       meta = document.createElement('meta')

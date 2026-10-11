@@ -1,6 +1,6 @@
-# Continuo Brand Imagery Credits
+# Care Memory Brand Imagery Credits
 
-The photography assets in `src/assets/images/` adhere to the **Continuo** quiet luxury art direction:
+The photography assets in `src/assets/images/` adhere to the **Care Memory** quiet luxury art direction:
 - Palette: `--ink` (`#0F1A17`), `--forest` (`#16302A`), `--ivory` (`#F7F3EC`), `--linen` (`#EDE6DA`), and `--champagne` (`#C8A96A`).
 - Mood: warm, soft natural window light, shallow depth of field, muted deep greens and warm creams, unhurried and unposed. No stock stethoscopes or hospital blue.
 

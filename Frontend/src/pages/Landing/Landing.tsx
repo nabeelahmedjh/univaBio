@@ -90,12 +90,12 @@ export default function Landing() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.8, ease: EASE }}
             >
-              Continuo
+              Care Memory
             </motion.p>
             <SplitWords
               className="t-hero mt-5 max-w-[900px] text-ivory"
               delay={1.1}
-              words={[{ text: 'Every' }, { text: 'conversation,' }, { text: 'continued.', italic: true }]}
+              words={[{ text: 'Every' }, { text: 'conversation,' }, { text: 'remembered.', italic: true }]}
             />
             <motion.p
               className="mt-6 text-[18px] text-sage"
@@ -158,7 +158,7 @@ export default function Landing() {
             eyebrow="Record"
             title="Stay with the person,"
             italic="not the page."
-            body="Record the consultation, or upload one you already have. Continuo listens quietly in the background, so your attention stays where it belongs."
+            body="Record the consultation, or upload one you already have. Care Memory listens quietly in the background, so your attention stays where it belongs."
             image={recordImg}
             alt="Two people in conversation across a wooden table in a warm consulting room"
           />
@@ -200,7 +200,7 @@ export default function Landing() {
           <footer className="mx-auto flex max-w-[1240px] flex-col items-center justify-between gap-4 border-t border-hairline px-6 py-10 sm:flex-row md:px-10">
             <Logo tone="light" size="sm" draw={false} />
             <Footer tone="dark" />
-            <p className="text-[12px] text-sage/70">© {new Date().getFullYear()} Continuo</p>
+            <p className="text-[12px] text-sage/70">© {new Date().getFullYear()} Care Memory</p>
           </footer>
         </div>
 

@@ -12,7 +12,7 @@
  */
 import type { DoctorProfile, Role } from './types'
 
-const KEY = 'continuo.auth'
+const KEY = 'carememory.auth'
 
 export interface StoredAuth {
   role: Role

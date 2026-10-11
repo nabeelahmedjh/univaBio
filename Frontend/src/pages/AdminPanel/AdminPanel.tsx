@@ -141,7 +141,7 @@ export default function AdminPanel() {
 
       toast.show({
         title: 'Doctor added',
-        description: `${res.doctor.name} has been enrolled into Continuo.`,
+        description: `${res.doctor.name} has been enrolled into Care Memory.`,
       })
 
       // Reset form with new fresh suggested credentials
@@ -162,7 +162,7 @@ export default function AdminPanel() {
 
   const copyFullCredentials = async () => {
     if (!credentialsModal) return
-    const text = `Continuo Doctor Credentials\nName: ${credentialsModal.name}\nDoctor ID: ${credentialsModal.doctorId}\nTemporary Password: ${credentialsModal.password}\nPortal URL: ${window.location.origin}/doctor`
+    const text = `Care Memory Doctor Credentials\nName: ${credentialsModal.name}\nDoctor ID: ${credentialsModal.doctorId}\nTemporary Password: ${credentialsModal.password}\nPortal URL: ${window.location.origin}/doctor`
     await navigator.clipboard.writeText(text)
     setCopiedCreds(true)
     setTimeout(() => setCopiedCreds(false), 2500)
@@ -215,7 +215,7 @@ export default function AdminPanel() {
           <div className="mx-auto flex h-18 max-w-[1240px] items-center justify-between px-6 sm:px-10">
             <div className="flex items-center gap-3">
               <LogoMark size={28} />
-              <span className="wordmark text-[22px] text-ink">Continuo</span>
+              <span className="wordmark text-[22px] text-ink">Care Memory</span>
               <span className="rounded-full border border-hairline bg-linen px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-forest">
                 Admin
               </span>

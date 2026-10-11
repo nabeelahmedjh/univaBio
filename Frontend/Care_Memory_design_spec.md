@@ -1,8 +1,8 @@
-# Continuo — Website Design & Build Specification
+# Care Memory — Website Design & Build Specification
 
 **Audience:** React.js developer
-**Product:** Continuo, a clinical session companion for doctors. The doctor records or uploads a consultation, and Continuo turns it into a clean markdown session note that the patient can later read.
-**Brand promise:** *Every conversation, continued.*
+**Product:** Care Memory, a clinical session companion for doctors. The doctor records or uploads a consultation, and Care Memory turns it into a clean markdown session note that the patient can later read.
+**Brand promise:** *Every conversation, remembered.*
 **Design goal:** Aesthetic and luxury. It should feel like a private clinic's concierge, not a SaaS dashboard. Calm, quiet, expensive, unhurried.
 
 ---
@@ -138,7 +138,7 @@ Use a `<ProtectedRoute role="doctor|admin">` wrapper. Redirect to `/doctor` or `
 ## 7. Global Experience
 
 ### 7.1 Logo & brand mark
-- Wordmark "Continuo" in Cormorant 500 with wide letter-spacing (0.08em).
+- Wordmark "Care Memory" in Cormorant 500 with wide letter-spacing (0.08em).
 - Small mark: a continuous single-line loop (an infinity-like ribbon) in champagne, drawn as SVG. Animate it with a stroke-dash draw-in (1.4s) on first load and on the landing hero.
 
 ### 7.2 Page transitions
@@ -179,7 +179,7 @@ Top-right, ink card with champagne left border, auto-dismiss 4s, slide in from t
 **Layout (dark theme, full viewport, 100vh):**
 - Background: slow-moving gradient (`--ink` to `--forest`) with film grain. Two blurred champagne orbs (600px, 12% opacity) drifting slowly (30s loop, Framer Motion keyframes).
 - Top-left: logo. Top-right: tiny text "Private. Secure. Yours." in sage.
-- Centre: eyebrow "CONTINUO", then H1 "Every conversation, *continued.*" and one sub-line (sage, 18px): "A quiet companion for the consultation room."
+- Centre: eyebrow "CARE MEMORY", then H1 "Every conversation, *remembered.*" and one sub-line (sage, 18px): "A quiet companion for the consultation room."
 - Below: the question **"Are you a…"** in Cormorant italic, then two large cards side by side (stacked on mobile):
   - **Doctor** (route `/doctor`): "Capture and continue your consultations."
   - **Patient** (route `/patient`): "Revisit what was said, anytime."
@@ -207,7 +207,7 @@ Top-right, ink card with champagne left border, auto-dismiss 4s, slide in from t
   - Eyebrow "DOCTOR PORTAL"
   - H2 "Welcome back." (italic on "back")
   - Fields: **Doctor ID**, **Password** (with show/hide eye icon)
-  - Primary button **"Enter Continuo"** (full width)
+  - Primary button **"Enter Care Memory"** (full width)
   - Small text: "Access is provided by your clinic administrator." with a lock icon
   - Link "← Back" to `/`
 - **Right (image panel):** full-bleed photograph (see Section 9, image A) with a `--forest` overlay at 35% and a slow Ken Burns zoom (scale 1.0 to 1.08 over 20s, alternate). A glass quote card bottom-left: *"Time returned to the conversation."*
@@ -270,7 +270,7 @@ Top-right, ink card with champagne left border, auto-dismiss 4s, slide in from t
   - Drag-over: border turns solid, background tints champagne at 6%, the icon floats up 6px.
   - After selection: show a file row (name, size, duration) with a small waveform preview (wavesurfer) and a remove (×) button.
 - **Step 3b: Record panel** (when "Record" is selected)
-  - Request mic permission with a polite pre-prompt ("Continuo needs your microphone to listen. Nothing is stored until you save.").
+  - Request mic permission with a polite pre-prompt ("Care Memory needs your microphone to listen. Nothing is stored until you save.").
   - A large circular **record button** (96px, champagne ring). Idle: mic icon. Recording: the ring pulses (scale 1 to 1.12, 1.6s loop), a red-free design (use champagne, not red), the icon becomes a square stop, and a live timer (`00:42`) in Cormorant 40px shows above.
   - Live waveform bars below (use `AnalyserNode` to animate 40 thin vertical bars).
   - Controls: Pause/Resume and Stop. After stopping, show playback (play/pause plus scrubber) and options **"Re-record"** or **"Use this recording"**.
@@ -440,7 +440,7 @@ Poll `/sessions/:sessionId/status` every 3s on the processing screen until `read
 
 ## 14. Privacy & Trust Microcopy (use consistently)
 
-- Footer on every screen: "Continuo · Private by design."
+- Footer on every screen: "Care Memory · Private by design."
 - Recording consent hint: "Please make sure the patient has agreed to be recorded."
 - Sign-out confirmation: "Your session has been closed securely."
 - Tone: calm, warm, short sentences. No exclamation marks, no jargon.

@@ -20,6 +20,7 @@ import { LogoMark } from '@/components/ui/Logo'
 import { Monogram } from '@/components/ui/Monogram'
 import { Footer, Skeleton } from '@/components/ui/primitives'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
+import { useAuth } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 import {
   formatDuration,
@@ -37,6 +38,12 @@ export default function PatientSessions() {
   const patientId = rawId ? decodeURIComponent(rawId) : ''
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { isAllowed } = useAuth()
+
+  // A doctor reaching this timeline came from the dashboard, so "back" returns
+  // there; a patient (no login) returns to the phone-entry portal.
+  const isDoctor = isAllowed('doctor')
+  const backTo = isDoctor ? '/doctor/dashboard' : '/patient'
 
   const patientQuery = usePatient(patientId)
   const sessionsQuery = usePatientSessions(patientId)
@@ -141,10 +148,10 @@ export default function PatientSessions() {
       <div className="border-b border-hairline p-6">
         <div className="flex items-center justify-between">
           <Link
-            to="/patient"
+            to={backTo}
             className="link-underline inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-stone hover:text-ink"
           >
-            <ArrowLeft size={14} strokeWidth={1.5} /> Portal
+            <ArrowLeft size={14} strokeWidth={1.5} /> {isDoctor ? 'Dashboard' : 'Portal'}
           </Link>
           <LogoMark size={24} />
         </div>
@@ -336,7 +343,7 @@ export default function PatientSessions() {
               <Printer size={15} strokeWidth={1.25} />
             </button>
             <Link
-              to="/patient"
+              to={backTo}
               className="text-[12px] font-semibold uppercase tracking-[0.14em] text-stone hover:text-ink"
             >
               Exit
@@ -394,7 +401,7 @@ export default function PatientSessions() {
                   className="inline-flex items-center gap-2 text-stone hover:text-ink lg:hidden"
                 >
                   <LogoMark size={22} />
-                  <span className="font-display text-[18px]">Continuo</span>
+                  <span className="font-display text-[18px]">Care Memory</span>
                 </Link>
 
                 <div className="ml-auto hidden items-center gap-3 lg:flex">
@@ -417,9 +424,9 @@ export default function PatientSessions() {
                     variant="secondary"
                     tone="light"
                     className="mt-6"
-                    onClick={() => navigate('/patient')}
+                    onClick={() => navigate(backTo)}
                   >
-                    Return to patient portal
+                    {isDoctor ? 'Return to dashboard' : 'Return to patient portal'}
                   </Button>
                 </div>
               ) : sessionsQuery.isLoading ? (
@@ -434,8 +441,8 @@ export default function PatientSessions() {
                   art="notebook"
                   message="Your first session will appear here."
                   action={
-                    <ButtonLink to="/patient" variant="secondary" tone="light">
-                      Return to portal
+                    <ButtonLink to={backTo} variant="secondary" tone="light">
+                      {isDoctor ? 'Return to dashboard' : 'Return to portal'}
                     </ButtonLink>
                   }
                 />
@@ -508,7 +515,7 @@ export default function PatientSessions() {
                     {/* Reader Footer */}
                     <footer className="mt-16 border-t border-hairline pt-8 text-[13px] text-stone">
                       <p>
-                        Prepared securely by Continuo for {patient?.name ?? 'patient'}.
+                        Prepared securely by Care Memory for {patient?.name ?? 'patient'}.
                         If you have questions about your notes, please speak with your doctor at your next appointment.
                       </p>
                     </footer>

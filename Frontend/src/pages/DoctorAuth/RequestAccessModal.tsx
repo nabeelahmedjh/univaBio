@@ -46,7 +46,7 @@ export function RequestAccessModal({ open, onClose }: { open: boolean; onClose: 
   }
 
   return (
-    <Modal open={open} onClose={close} eyebrow="Request access" title={sent ? 'Thank you.' : 'Join Continuo'}>
+    <Modal open={open} onClose={close} eyebrow="Request access" title={sent ? 'Thank you.' : 'Join Care Memory'}>
       {sent ? (
         <div>
           <p className="text-[15px] text-stone">
@@ -59,7 +59,7 @@ export function RequestAccessModal({ open, onClose }: { open: boolean; onClose: 
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-2">
           <p className="mb-4 text-[14px] text-stone">
-            Accounts are created by your clinic administrator. If your clinic is new to Continuo, leave your details and
+            Accounts are created by your clinic administrator. If your clinic is new to Care Memory, leave your details and
             we will reach out.
           </p>
           <BoxInput label="Full name" autoComplete="name" error={errors.name?.message} {...register('name')} />

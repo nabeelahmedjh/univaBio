@@ -22,7 +22,7 @@ export function Footer({ tone = 'dark', className = '' }: { tone?: 'dark' | 'lig
     <p
       className={`text-[12px] tracking-[0.12em] ${tone === 'dark' ? 'text-sage/80' : 'text-stone'} ${className}`}
     >
-      Continuo · Private by design.
+      Care Memory · Private by design.
     </p>
   )
 }

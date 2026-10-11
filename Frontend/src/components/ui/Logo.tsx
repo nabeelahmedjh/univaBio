@@ -72,13 +72,13 @@ interface LogoProps {
   size?: 'sm' | 'md'
 }
 
-/** Mark + "Continuo" wordmark. `tone="light"` = ivory text for dark screens. */
+/** Mark + "Care Memory" wordmark. `tone="light"` = ivory text for dark screens. */
 export function Logo({ tone = 'light', draw = true, to = '/', size = 'md' }: LogoProps) {
   const text = tone === 'light' ? 'text-ivory' : 'text-ink'
   return (
-    <Link to={to} className={`inline-flex items-center gap-3 ${text}`} aria-label="Continuo, home">
+    <Link to={to} className={`inline-flex items-center gap-3 ${text}`} aria-label="Care Memory, home">
       <LogoMark size={size === 'sm' ? 26 : 32} draw={draw} />
-      <span className={`wordmark ${size === 'sm' ? 'text-[20px]' : 'text-[24px]'} leading-none`}>Continuo</span>
+      <span className={`wordmark ${size === 'sm' ? 'text-[20px]' : 'text-[24px]'} leading-none`}>Care Memory</span>
     </Link>
   )
 }

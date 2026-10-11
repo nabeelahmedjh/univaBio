@@ -324,33 +324,33 @@ export const SEED_DOCTORS = [
     id: 'doc_1',
     name: 'Dr. Amara Whitfield',
     doctorId: 'DR-2048',
-    password: 'continuo',
+    password: 'carememory',
     specialty: 'General Practice',
-    email: 'a.whitfield@continuo.health',
+    email: 'a.whitfield@carememory.health',
   },
   {
     id: 'doc_2',
     name: 'Dr. Julian Ashby',
     doctorId: 'DR-3117',
-    password: 'continuo',
+    password: 'carememory',
     specialty: 'Cardiology',
-    email: 'j.ashby@continuo.health',
+    email: 'j.ashby@carememory.health',
   },
   {
     id: 'doc_3',
     name: 'Dr. Selin Kaya',
     doctorId: 'DR-4402',
-    password: 'continuo',
+    password: 'carememory',
     specialty: 'Dermatology',
-    email: 's.kaya@continuo.health',
+    email: 's.kaya@carememory.health',
   },
   {
     id: 'doc_4',
     name: 'Dr. Mateo Rinaldi',
     doctorId: 'DR-5590',
-    password: 'continuo',
+    password: 'carememory',
     specialty: 'Orthopaedics',
-    email: 'm.rinaldi@continuo.health',
+    email: 'm.rinaldi@carememory.health',
   },
 ]
 
@@ -371,4 +371,4 @@ export const SEED_PATIENTS: { id: string; name: string; sessions: number }[] = [
   { id: 'PT-11208', name: 'Hannah Brooks', sessions: 0 },
 ]
 
-export const ADMIN_CREDENTIALS = { username: 'admin', password: 'continuo' }
+export const ADMIN_CREDENTIALS = { username: 'admin', password: 'carememory' }

@@ -244,7 +244,7 @@ export function Recorder({ patientId, onComplete, onActiveChange }: RecorderProp
           >
             {phase === 'idle' || phase === 'requesting' ? (
               <p className="mb-8 max-w-sm text-center text-[14px] text-stone">
-                Continuo needs your microphone to listen. Nothing is stored until you save.
+                Care Memory needs your microphone to listen. Nothing is stored until you save.
               </p>
             ) : (
               <p

@@ -80,7 +80,7 @@ export default function DoctorAuth() {
             <blockquote className="font-display text-[28px] italic leading-tight text-ivory">
               “Time returned to the conversation.”
             </blockquote>
-            <figcaption className="eyebrow mt-4">Continuo</figcaption>
+            <figcaption className="eyebrow mt-4">Care Memory</figcaption>
           </motion.figure>
         </div>
 
@@ -127,7 +127,7 @@ export default function DoctorAuth() {
               <FieldError id="doctor-form-error" message={serverError} />
 
               <Button type="submit" block className="mt-6" loading={busy} loadingText="Opening your space…">
-                Enter Continuo
+                Enter Care Memory
               </Button>
 
               <p className="mt-6 flex items-center gap-2 text-[13px] text-sage">

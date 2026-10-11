@@ -129,7 +129,7 @@ export default function AdminLogin() {
               {USE_MOCK && (
                 <div className="mt-8 rounded-xl border border-hairline/60 bg-ink/40 p-3.5 text-center text-[12px] text-sage">
                   Demo credentials: <span className="font-mono-ish text-champagne-soft">admin</span> /{' '}
-                  <span className="font-mono-ish text-champagne-soft">continuo</span>
+                  <span className="font-mono-ish text-champagne-soft">carememory</span>
                 </div>
               )}
             </form>

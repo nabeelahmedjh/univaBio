@@ -1,5 +1,5 @@
 /**
- * Continuo API layer.
+ * Care Memory API layer.
  *
  * `api` is the single entry point used by the UI. It is backed either by the
  * real HTTP client (`httpApi`, matching the contract in the design spec §12)
@@ -45,7 +45,7 @@ export interface CreateSessionInput {
   durationSec?: number
 }
 
-export interface ContinuoApi {
+export interface CareMemoryApi {
   // Auth
   loginDoctor(input: DoctorLoginInput): Promise<DoctorLoginResponse>
   loginAdmin(input: AdminLoginInput): Promise<AdminLoginResponse>
@@ -93,7 +93,7 @@ async function request<T>(path: string, init: RequestInit = {}, authToken?: stri
       credentials: 'include',
     })
   } catch {
-    throw new ApiError('We could not reach Continuo. Please check your connection.', 0, 'network')
+    throw new ApiError('We could not reach Care Memory. Please check your connection.', 0, 'network')
   }
 
   if (!res.ok) {
@@ -243,7 +243,7 @@ function toAdminDoctor(d: BkDoctor): AdminDoctor {
   }
 }
 
-export const httpApi: ContinuoApi = {
+export const httpApi: CareMemoryApi = {
   async loginDoctor({ doctorId, password }) {
     const tok = await request<BkToken>('/auth/login', {
       method: 'POST',
@@ -353,4 +353,4 @@ export const httpApi: ContinuoApi = {
   requestAccess: (input) => request('/access-requests', { method: 'POST', body: JSON.stringify(input) }),
 }
 
-export const api: ContinuoApi = USE_MOCK ? mockApi : httpApi
+export const api: CareMemoryApi = USE_MOCK ? mockApi : httpApi
