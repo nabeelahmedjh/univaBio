@@ -29,12 +29,20 @@ class Settings(BaseSettings):
     super_admin_username: str = "admin"
     super_admin_pass: str = "admin"
 
-    # ---- LLM ----
-    llm_provider: str = "groq"
-    groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
-    groq_base_url: str = "https://api.groq.com/openai/v1"
+    # ---- LLM (Google AI Studio / Gemini) ----
+    llm_provider: str = "gemini"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.8-flash"
     llm_temperature: float = 0.2
+
+    # ---- Speech-to-text (local Whisper) ----
+    # Model size: tiny | base | small | medium | large. 'tiny' is fastest on CPU;
+    # larger models are more accurate but download more weights and run slower.
+    whisper_model: str = "tiny"
+    # Where uploaded audio files are stored before transcription.
+    audio_upload_dir: str = "uploads"
+    # Number of concurrent async pipeline workers draining the job queue.
+    pipeline_workers: int = 2
 
     @property
     def cors_origin_list(self) -> List[str]:

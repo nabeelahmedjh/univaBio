@@ -7,7 +7,6 @@ import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
 from . import models
@@ -18,7 +17,6 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 ROLE_SUPER_ADMIN = "super_admin"
 ROLE_DOCTOR = "doctor"
-ROLE_PATIENT = "patient"
 
 
 # ---------- Password hashing ----------
@@ -76,6 +74,20 @@ async def get_principal(
     return Principal(role=payload.get("role"), subject=str(payload.get("sub")))
 
 
+async def get_optional_principal(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> Optional[Principal]:
+    """Resolve a caller identity when a token is present, else None.
+
+    Patients are not authenticated: they look up their own record by phone,
+    so patient-facing routes accept anonymous callers (principal is None).
+    """
+    if credentials is None or not credentials.credentials:
+        return None
+    payload = decode_token(credentials.credentials)
+    return Principal(role=payload.get("role"), subject=str(payload.get("sub")))
+
+
 async def get_current_super_admin(
     principal: Principal = Depends(get_principal),
 ) -> Principal:
@@ -94,15 +106,3 @@ async def get_current_doctor(
     if doctor is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Doctor no longer exists")
     return doctor
-
-
-async def get_current_patient(
-    principal: Principal = Depends(get_principal),
-    db: DBSession = Depends(get_db),
-) -> models.Patient:
-    if principal.role != ROLE_PATIENT:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Patient privileges required")
-    patient = db.scalar(select(models.Patient).where(models.Patient.phone == principal.subject))
-    if patient is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Patient no longer exists")
-    return patient

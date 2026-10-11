@@ -9,23 +9,27 @@ import { Recorder } from '@/components/audio/Recorder'
 import { isRecordingSupported } from '@/lib/audio'
 import { EASE } from '@/components/motion/easing'
 import { PageTransition } from '@/components/motion/PageTransition'
-import { Button, ButtonLink } from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Monogram } from '@/components/ui/Monogram'
 import { Spinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { useLeaveGuard } from '@/hooks/useLeaveGuard'
-import { api } from '@/lib/api'
-import { STATUS_POLL_MS } from '@/lib/config'
+import { api, ApiError } from '@/lib/api'
 import { errorMessage } from '@/lib/errors'
 import { qk } from '@/lib/queries'
 import type { Patient } from '@/lib/types'
-import { ProcessingView, UploadingView } from './ProgressViews'
+import { UploadingView } from './ProgressViews'
 
 type Method = 'upload' | 'record'
-type Verify = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; patient: Patient } | { state: 'error'; message: string }
-type Phase = 'form' | 'uploading' | 'processing' | 'done'
+type Verify =
+  | { state: 'idle' }
+  | { state: 'checking' }
+  | { state: 'ok'; patient: Patient }
+  | { state: 'new'; phone: string }
+  | { state: 'error'; message: string }
+type Phase = 'form' | 'uploading'
 
 function CheckDraw() {
   return (
@@ -127,6 +131,7 @@ export default function DoctorSession() {
   const recordSupported = isRecordingSupported()
 
   const [patientId, setPatientId] = useState(params.get('patient') ?? '')
+  const [newName, setNewName] = useState('')
   const [verify, setVerify] = useState<Verify>({ state: 'idle' })
   const [method, setMethod] = useState<Method | null>(null)
   const [audio, setAudio] = useState<File | null>(null)
@@ -135,7 +140,6 @@ export default function DoctorSession() {
   const [phase, setPhase] = useState<Phase>('form')
   const [progress, setProgress] = useState(0)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [sessionId, setSessionId] = useState<string | null>(null)
   const verifySeq = useRef(0)
 
   // Leave guard: mid-recording, holding an unsaved take, or uploading.
@@ -146,7 +150,7 @@ export default function DoctorSession() {
     const id = raw.trim()
     const seq = ++verifySeq.current
     if (id.length < 3) {
-      setVerify(id ? { state: 'error', message: 'Patient IDs are a little longer than that.' } : { state: 'idle' })
+      setVerify(id ? { state: 'error', message: 'Phone numbers are a little longer than that.' } : { state: 'idle' })
       return
     }
     setVerify({ state: 'checking' })
@@ -154,7 +158,10 @@ export default function DoctorSession() {
       const patient = await api.getPatient(id)
       if (seq === verifySeq.current) setVerify({ state: 'ok', patient })
     } catch (e) {
-      if (seq === verifySeq.current) setVerify({ state: 'error', message: errorMessage(e, "We couldn't find that patient.") })
+      if (seq !== verifySeq.current) return
+      // No patient with that phone yet -> offer to create one on submit.
+      if (e instanceof ApiError && e.status === 404) setVerify({ state: 'new', phone: id })
+      else setVerify({ state: 'error', message: errorMessage(e, "We couldn't check that phone number.") })
     }
   }, [])
 
@@ -168,7 +175,10 @@ export default function DoctorSession() {
     return () => window.clearTimeout(t)
   }, [patientId, runVerify])
 
-  const verified = verify.state === 'ok'
+  const verified = verify.state === 'ok' || verify.state === 'new'
+  const patientPhone =
+    verify.state === 'ok' ? verify.patient.id : verify.state === 'new' ? verify.phone : ''
+  const patientDisplayName = verify.state === 'ok' ? verify.patient.name : newName.trim()
   const canSubmit = verified && audio !== null && !recActive
 
   const setAudioFile = useCallback((f: File | null, d?: number) => {
@@ -183,66 +193,38 @@ export default function DoctorSession() {
     setAudioFile(null)
   }
 
-  /* Poll processing status every 3s */
-  useEffect(() => {
-    if (phase !== 'processing' || !sessionId) return
-    let alive = true
-    const poll = async () => {
-      try {
-        const { status } = await api.getSessionStatus(sessionId)
-        if (!alive) return
-        if (status === 'ready') {
-          setPhase('done')
-          qc.invalidateQueries({ queryKey: qk.overview })
-          qc.invalidateQueries({ queryKey: qk.patients })
-          if (verify.state === 'ok') qc.invalidateQueries({ queryKey: qk.patientSessions(verify.patient.id) })
-          toast.show({
-            title: 'Session saved',
-            description: 'The note is ready to read.',
-            action: verify.state === 'ok'
-              ? { label: 'View session', onClick: () => navigate(`/patient/${encodeURIComponent(verify.patient.id)}?s=${sessionId}`) }
-              : undefined,
-          })
-        } else if (status === 'failed') {
-          setPhase('form')
-          setSubmitError('Continuo could not process this recording. Your audio is still here, so you can try again.')
-        }
-      } catch {
-        /* transient: keep polling */
-      }
-    }
-    const t = window.setInterval(poll, STATUS_POLL_MS)
-    poll()
-    return () => {
-      alive = false
-      window.clearInterval(t)
-    }
-  }, [phase, sessionId, qc, toast, navigate, verify])
-
   const submit = async () => {
-    if (!canSubmit || verify.state !== 'ok' || !audio) return
+    if (!canSubmit || !patientPhone || !audio) return
     setSubmitError(null)
     setProgress(0)
     setPhase('uploading')
     try {
-      const res = await api.createSession(
-        { patientId: verify.patient.id, audio, durationSec: duration },
+      await api.createSession(
+        {
+          patientId: patientPhone,
+          patientName: verify.state === 'new' ? newName.trim() || undefined : undefined,
+          audio,
+          durationSec: duration,
+        },
         { onProgress: setProgress },
       )
-      setSessionId(res.sessionId)
-      setPhase(res.status === 'ready' ? 'done' : 'processing')
+      // Queued for background processing. Refresh dashboard data, then hand off
+      // to the dashboard timeline, which polls until the note is ready.
+      qc.invalidateQueries({ queryKey: qk.doctorSessions })
+      qc.invalidateQueries({ queryKey: qk.overview })
+      qc.invalidateQueries({ queryKey: qk.patients })
+      qc.invalidateQueries({ queryKey: qk.patientSessions(patientPhone) })
+      toast.show({
+        title: 'Session queued',
+        description: patientDisplayName
+          ? `We're preparing ${patientDisplayName}'s note. Track it on your dashboard.`
+          : 'We are preparing the note. Track its progress on your dashboard.',
+      })
+      navigate('/doctor/dashboard')
     } catch (e) {
       setPhase('form')
       setSubmitError(errorMessage(e, 'The upload did not complete.'))
     }
-  }
-
-  const startAnother = () => {
-    setPhase('form')
-    setPatientId('')
-    setMethod(null)
-    setAudioFile(null)
-    setSessionId(null)
   }
 
   return (
@@ -257,39 +239,6 @@ export default function DoctorSession() {
             {phase === 'uploading' ? (
               <motion.div key="up" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <UploadingView progress={progress} />
-              </motion.div>
-            ) : phase === 'processing' ? (
-              <motion.div key="proc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <ProcessingView />
-              </motion.div>
-            ) : phase === 'done' ? (
-              <motion.div
-                key="done"
-                className="flex flex-col items-center py-20 text-center"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: EASE }}
-              >
-                <span className="flex h-16 w-16 items-center justify-center rounded-full border border-champagne">
-                  <Check size={26} strokeWidth={1.25} className="text-[#8a6f3a]" />
-                </span>
-                <p className="eyebrow on-light mt-8">Session saved</p>
-                <h1 className="t-h2 mt-3 text-ink">
-                  The note is <em className="italic">ready.</em>
-                </h1>
-                {verify.state === 'ok' && (
-                  <p className="mt-3 text-stone">
-                    {verify.patient.name} can read it from their patient portal.
-                  </p>
-                )}
-                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                  {verify.state === 'ok' && sessionId && (
-                    <ButtonLink to={`/patient/${encodeURIComponent(verify.patient.id)}?s=${sessionId}`}>View session</ButtonLink>
-                  )}
-                  <Button variant="secondary" tone="light" onClick={startAnother}>
-                    Begin another
-                  </Button>
-                </div>
               </motion.div>
             ) : (
               <motion.div
@@ -309,21 +258,22 @@ export default function DoctorSession() {
                 {/* Step 1 */}
                 <section className="mt-14" aria-labelledby="step1">
                   <p id="step1" className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone">
-                    Step 1
+                    Step 1 · Patient phone
                   </p>
                   <div className="relative mt-2">
                     <label htmlFor="session-patient" className="sr-only">
-                      Patient ID
+                      Patient phone
                     </label>
                     <input
                       id="session-patient"
+                      type="tel"
+                      inputMode="tel"
                       value={patientId}
                       onChange={(e) => setPatientId(e.target.value)}
                       onBlur={() => patientId.trim() && runVerify(patientId)}
-                      placeholder="Patient ID"
+                      placeholder="Patient phone"
                       autoComplete="off"
                       spellCheck={false}
-                      autoCapitalize="characters"
                       aria-invalid={verify.state === 'error' || undefined}
                       aria-describedby="patient-status"
                       className="peer w-full border-0 border-b border-[rgba(15,26,23,0.18)] bg-transparent pb-3 pt-2 font-display text-[28px] tracking-[0.04em] text-ink outline-none placeholder:text-stone/50 focus-visible:outline-none"
@@ -349,6 +299,43 @@ export default function DoctorSession() {
                           <Monogram name={verify.patient.name} size={30} />
                           <span className="text-[14px] font-medium text-ink">{verify.patient.name}</span>
                           <CheckDraw />
+                        </motion.div>
+                      )}
+                      {verify.state === 'new' && (
+                        <motion.div
+                          key="new"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.4, ease: EASE }}
+                          className="rounded-[16px] border border-champagne/60 bg-paper p-4"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Monogram name={newName.trim() || verify.phone} size={30} />
+                            <div className="min-w-0">
+                              <p className="text-[14px] font-medium text-ink">
+                                New patient · <span className="font-mono-ish">{verify.phone}</span>
+                              </p>
+                              <p className="text-[12px] text-stone">
+                                No one exists with this phone yet. We'll create their record now.
+                              </p>
+                            </div>
+                          </div>
+                          <label
+                            htmlFor="new-patient-name"
+                            className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.16em] text-stone"
+                          >
+                            Name <span className="normal-case tracking-normal text-stone/70">(optional — add later)</span>
+                          </label>
+                          <input
+                            id="new-patient-name"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="e.g. Amara Whitfield"
+                            autoComplete="off"
+                            spellCheck={false}
+                            className="mt-2 w-full border-0 border-b border-[rgba(15,26,23,0.18)] bg-transparent pb-2 text-[16px] text-ink outline-none placeholder:text-stone/50 focus-visible:outline-none"
+                          />
                         </motion.div>
                       )}
                       {verify.state === 'error' && (
@@ -415,8 +402,8 @@ export default function DoctorSession() {
                         transition={{ duration: 0.5, ease: EASE }}
                       >
                         {method === 'upload' && <Dropzone file={audio} onFile={setAudioFile} />}
-                        {method === 'record' && verify.state === 'ok' && (
-                          <Recorder patientId={verify.patient.id} onComplete={setAudioFile} onActiveChange={setRecActive} />
+                        {method === 'record' && patientPhone && (
+                          <Recorder patientId={patientPhone} onComplete={setAudioFile} onActiveChange={setRecActive} />
                         )}
                       </motion.div>
                     </AnimatePresence>

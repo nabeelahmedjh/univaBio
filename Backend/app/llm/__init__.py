@@ -1,4 +1,4 @@
 """LLM provider package (pluggable, OpenAI-compatible)."""
-from .base import ClinicalReport, LLMProvider, LLMError, get_provider
+from .base import LLMProvider, LLMError, get_provider
 
-__all__ = ["ClinicalReport", "LLMProvider", "LLMError", "get_provider"]
+__all__ = ["LLMProvider", "LLMError", "get_provider"]

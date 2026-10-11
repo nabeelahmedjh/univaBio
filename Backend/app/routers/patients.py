@@ -1,4 +1,11 @@
-"""Patient routes: creation (by doctor), lookup, update, and full history."""
+"""Patient routes: creation (by doctor), lookup, update, and full history.
+
+Patients are not authenticated: they look up their own record and history by
+phone (patient id), so those routes accept anonymous callers. Creating and
+updating a patient still requires an authenticated doctor (or super admin).
+"""
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
@@ -9,8 +16,8 @@ from ..deps import resolve_patient
 from ..security import (
     Principal,
     get_current_doctor,
+    get_optional_principal,
     get_principal,
-    hash_password,
 )
 
 router = APIRouter(prefix="/patients", tags=["patients"])
@@ -32,7 +39,6 @@ def create_patient(
         date_of_birth=body.date_of_birth,
         gender=body.gender,
         doctor_id=doctor.id,
-        hashed_password=hash_password(body.password) if body.password else None,
     )
     db.add(patient)
     db.commit()
@@ -43,7 +49,7 @@ def create_patient(
 @router.get("/{phone}", response_model=schemas.PatientOut)
 def read_patient(
     phone: str,
-    principal: Principal = Depends(get_principal),
+    principal: Optional[Principal] = Depends(get_optional_principal),
     db: DBSession = Depends(get_db),
 ):
     return resolve_patient(db, phone, principal)
@@ -58,9 +64,6 @@ def update_patient(
 ):
     patient = resolve_patient(db, phone, principal)
     data = body.model_dump(exclude_unset=True)
-    if "password" in data:
-        password = data.pop("password")
-        patient.hashed_password = hash_password(password) if password else None
     for field, value in data.items():
         setattr(patient, field, value)
     db.commit()
@@ -71,7 +74,7 @@ def update_patient(
 @router.get("/{phone}/history", response_model=schemas.HistoryOut)
 def read_patient_history(
     phone: str,
-    principal: Principal = Depends(get_principal),
+    principal: Optional[Principal] = Depends(get_optional_principal),
     db: DBSession = Depends(get_db),
 ):
     patient = resolve_patient(db, phone, principal)
@@ -82,5 +85,5 @@ def read_patient_history(
     ).all()
     return schemas.HistoryOut(
         patient=schemas.PatientOut.model_validate(patient),
-        sessions=[schemas.serialize_session(s) for s in sessions],
+        sessions=[schemas.SessionOut.model_validate(s) for s in sessions],
     )

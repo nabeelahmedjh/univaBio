@@ -62,6 +62,8 @@ export interface SessionSummary {
   title: string
   /** Optional one-line excerpt for the timeline. */
   excerpt?: string
+  /** processing | ready | failed. Absent for legacy/mock rows. */
+  status?: SessionStatus
 }
 
 export interface SessionDetail {
@@ -69,6 +71,19 @@ export interface SessionDetail {
   date: string
   markdown: string
   title?: string
+  durationSec?: number
+  status: SessionStatus
+}
+
+/** A recent session row for the doctor dashboard activity timeline. */
+export interface ActivitySession {
+  id: string
+  patientId: string
+  patientName: string
+  title: string
+  /** ISO timestamp */
+  date: string
+  status: SessionStatus
   durationSec?: number
 }
 

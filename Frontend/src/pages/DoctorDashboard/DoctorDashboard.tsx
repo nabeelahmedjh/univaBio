@@ -12,12 +12,13 @@ import { EmptyState } from '@/components/ui/LineArt'
 import { Monogram } from '@/components/ui/Monogram'
 import { Skeleton } from '@/components/ui/primitives'
 import { Sparkline, Stat } from '@/components/ui/Stat'
+import { Spinner } from '@/components/ui/Spinner'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { useAuth } from '@/lib/auth'
 import { errorMessage } from '@/lib/errors'
 import { formatEyebrowDate, formatRelativeDay, greeting, lastName, plural } from '@/lib/format'
-import { useDoctorOverview, useDoctorPatients } from '@/lib/queries'
-import type { PatientListItem } from '@/lib/types'
+import { useDoctorOverview, useDoctorPatients, useDoctorSessions } from '@/lib/queries'
+import type { ActivitySession, PatientListItem } from '@/lib/types'
 
 type Sort = 'recent' | 'name' | 'sessions'
 const PAGE = 8
@@ -56,11 +57,64 @@ function PatientRow({ p }: { p: PatientListItem }) {
   )
 }
 
+function ActivityRow({ s }: { s: ActivitySession }) {
+  const processing = s.status === 'processing'
+  const failed = s.status === 'failed'
+  const inner = (
+    <>
+      <span className="relative z-10 mt-3 flex h-4 w-4 shrink-0 items-center justify-center">
+        {processing ? (
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-champagne" aria-hidden />
+        ) : (
+          <span
+            className={`h-2.5 w-2.5 rounded-full border ${
+              failed ? 'border-danger/60 bg-linen' : 'border-champagne bg-champagne'
+            }`}
+          />
+        )}
+      </span>
+      <span className="min-w-0 flex-1 py-2.5">
+        <span className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-[15px] font-medium text-ink">{s.patientName}</span>
+          <span className="font-mono-ish text-[12px] text-stone">{s.patientId}</span>
+        </span>
+        <span className="mt-0.5 block truncate text-[14px] text-stone">{s.title}</span>
+      </span>
+      <span className="flex shrink-0 items-center gap-2 self-center">
+        {processing ? (
+          <>
+            <Spinner size={16} />
+            <span className="text-[13px] text-stone">Preparing note…</span>
+          </>
+        ) : failed ? (
+          <span className="text-[13px] text-danger">Failed</span>
+        ) : (
+          <span className="text-[13px] text-stone">{formatRelativeDay(s.date)}</span>
+        )}
+      </span>
+    </>
+  )
+  const cls =
+    'group relative flex items-start gap-4 rounded-[16px] border border-transparent px-4 py-2 transition-colors duration-300 hover:border-hairline hover:bg-paper'
+  return (
+    <li>
+      {processing || failed ? (
+        <div className={cls}>{inner}</div>
+      ) : (
+        <Link to={`/patient/${encodeURIComponent(s.patientId)}?s=${s.id}`} className={cls}>
+          {inner}
+        </Link>
+      )}
+    </li>
+  )
+}
+
 export default function DoctorDashboard() {
   useDocumentMeta('Dashboard')
   const { doctor } = useAuth()
   const overview = useDoctorOverview()
   const patients = useDoctorPatients()
+  const activity = useDoctorSessions()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<Sort>('recent')
   const [limit, setLimit] = useState(PAGE)
@@ -128,6 +182,48 @@ export default function DoctorDashboard() {
                 </StaggerItem>
               </Stagger>
             )}
+          </section>
+
+          {/* Recent sessions timeline */}
+          <section aria-labelledby="activity-title" className="mt-16 md:mt-20">
+            <div className="flex items-end justify-between">
+              <div>
+                <h2 id="activity-title" className="t-h2 text-ink">
+                  Recent sessions
+                </h2>
+                {activity.data && (
+                  <p className="mt-1 text-[14px] text-stone">{plural(activity.data.length, 'session')}</p>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 border-t border-hairline pt-4">
+              {activity.isLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-[64px] w-full rounded-[16px]" />
+                  ))}
+                </div>
+              ) : (activity.data?.length ?? 0) === 0 ? (
+                <EmptyState
+                  art="notebook"
+                  message="No sessions yet. Begin your first session."
+                  action={
+                    <ButtonLink to="/doctor/session" icon={<Plus size={16} strokeWidth={1.75} />}>
+                      New session
+                    </ButtonLink>
+                  }
+                />
+              ) : (
+                <div className="relative">
+                  <div aria-hidden className="absolute bottom-6 left-[23px] top-6 w-[1px] bg-champagne/40" />
+                  <ul className="space-y-1">
+                    {activity.data!.map((s) => (
+                      <ActivityRow key={s.id} s={s} />
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Patient list */}

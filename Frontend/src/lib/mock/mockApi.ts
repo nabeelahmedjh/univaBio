@@ -13,7 +13,7 @@ import { AUTH_ENABLED } from '../config'
 import { ApiError } from '../errors'
 import { getAuth } from '../token'
 import { startOfDay, startOfWeek } from '../format'
-import type { AdminDoctor, PatientListItem, SessionSummary } from '../types'
+import type { ActivitySession, AdminDoctor, PatientListItem, SessionSummary } from '../types'
 import { ADMIN_CREDENTIALS, SEED_DOCTORS, SEED_PATIENTS, TOPICS, buildMarkdown } from './data'
 
 const KEY = 'continuo.mock.v1'
@@ -155,6 +155,10 @@ function readySessions() {
   return db.sessions.filter((s) => s.readyAt <= now)
 }
 
+function statusOf(s: DbSession): 'processing' | 'ready' {
+  return s.readyAt > Date.now() ? 'processing' : 'ready'
+}
+
 function findPatient(id: string): DbPatient {
   const p = db.patients.find((x) => x.id.toLowerCase() === id.trim().toLowerCase())
   if (!p) throw new ApiError("We couldn't find that ID. Please check with your doctor's office.", 404, 'not_found')
@@ -239,6 +243,25 @@ export const mockApi: ContinuoApi = {
       .sort((a, b) => (b.lastSessionAt ?? '').localeCompare(a.lastSessionAt ?? ''))
   },
 
+  async getDoctorSessions() {
+    await latency()
+    const doc = currentDoctor()
+    const names = new Map(db.patients.filter((p) => p.doctorId === doc.id).map((p) => [p.id, p.name]))
+    return db.sessions
+      .filter((s) => names.has(s.patientId))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 8)
+      .map<ActivitySession>((s) => ({
+        id: s.id,
+        patientId: s.patientId,
+        patientName: names.get(s.patientId) ?? s.patientId,
+        title: s.title,
+        date: s.date,
+        status: statusOf(s),
+        durationSec: s.durationSec,
+      }))
+  },
+
   async getPatient(id) {
     await latency()
     const p = findPatient(id)
@@ -258,6 +281,7 @@ export const mockApi: ContinuoApi = {
         durationSec: s.durationSec,
         title: s.title,
         excerpt: s.excerpt,
+        status: statusOf(s),
       }))
   },
 
@@ -265,7 +289,14 @@ export const mockApi: ContinuoApi = {
     await sleep(300 + Math.random() * 400)
     const s = db.sessions.find((x) => x.id === sessionId)
     if (!s) throw new ApiError('This session could not be found.', 404, 'not_found')
-    return { id: s.id, date: s.date, markdown: s.markdown, title: s.title, durationSec: s.durationSec }
+    return {
+      id: s.id,
+      date: s.date,
+      markdown: s.markdown,
+      title: s.title,
+      durationSec: s.durationSec,
+      status: statusOf(s),
+    }
   },
 
   async createSession({ patientId, audio, durationSec }, opts = {}) {

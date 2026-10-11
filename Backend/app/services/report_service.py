@@ -1,10 +1,8 @@
-"""Turn a conversation transcript into a structured clinical report on a Session."""
-import json
-from typing import Any, Dict, List
-
-from ..llm import ClinicalReport, LLMError, get_provider
+"""Turn a conversation transcript into a Markdown clinical report on a Session."""
+from ..llm import LLMError, get_provider
 from ..llm.prompts import SYSTEM_PROMPT, build_user_prompt
 from ..models import Session
+from .transcription import TranscriptionError, transcribe
 
 
 def provider_is_configured() -> bool:
@@ -14,53 +12,31 @@ def provider_is_configured() -> bool:
         return False
 
 
-def _as_str_list(value: Any) -> List[str]:
-    if value is None:
-        return []
-    if isinstance(value, list):
-        return [str(v).strip() for v in value if str(v).strip()]
-    text = str(value).strip()
-    return [text] if text else []
+def public_status(report_status: str) -> str:
+    """Map the internal report_status to the client's processing/ready/failed."""
+    if report_status == "processing":
+        return "processing"
+    if report_status == "error":
+        return "failed"
+    return "ready"  # generated or pending_key
 
 
-def _normalize(data: Dict[str, Any]) -> ClinicalReport:
-    def opt_str(key: str):
-        val = data.get(key)
-        if val is None:
-            return None
-        text = str(val).strip()
-        return text or None
+def generate_report(transcript: str) -> str:
+    """Call the LLM and return the clinical report as Markdown text.
 
-    return ClinicalReport(
-        summary=opt_str("summary"),
-        symptoms=_as_str_list(data.get("symptoms")),
-        issues_discussed=_as_str_list(data.get("issues_discussed")),
-        diagnosis=opt_str("diagnosis"),
-        action_steps=_as_str_list(data.get("action_steps")),
-        medications=_as_str_list(data.get("medications")),
-        follow_up=opt_str("follow_up"),
-        raw=data,
-    )
-
-
-def generate_report(transcript: str) -> ClinicalReport:
-    """Call the LLM and return a normalized ClinicalReport. Raises LLMError on failure."""
+    Raises LLMError on failure or if the model returns an empty report.
+    """
     provider = get_provider()
-    data = provider.complete_json(SYSTEM_PROMPT, build_user_prompt(transcript))
-    return _normalize(data)
+    markdown = provider.complete_text(SYSTEM_PROMPT, build_user_prompt(transcript))
+    if not markdown or not markdown.strip():
+        raise LLMError("Model returned an empty report")
+    return markdown.strip()
 
 
-def apply_report_to_session(session: Session, report: ClinicalReport) -> None:
-    """Write a ClinicalReport onto the Session's embedded report columns."""
+def apply_report_to_session(session: Session, markdown: str) -> None:
+    """Write the Markdown report onto the Session."""
     session.report_status = "generated"
-    session.summary = report.summary
-    session.symptoms = json.dumps(report.symptoms)
-    session.issues_discussed = json.dumps(report.issues_discussed)
-    session.diagnosis = report.diagnosis
-    session.action_steps = json.dumps(report.action_steps)
-    session.medications = json.dumps(report.medications)
-    session.follow_up = report.follow_up
-    session.report_raw = json.dumps(report.raw)
+    session.report_markdown = markdown
     session.report_error = None
 
 
@@ -72,3 +48,57 @@ def mark_session_error(session: Session, message: str) -> None:
 def mark_session_pending_key(session: Session) -> None:
     session.report_status = "pending_key"
     session.report_error = "LLM API key not configured; transcript stored without a report."
+
+
+def list_stuck_sessions() -> list:
+    """Return [(session_id, audio_path)] for sessions stranded in 'processing'.
+
+    Used at startup to re-queue jobs lost to a crash or restart.
+    """
+    from ..database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        rows = (
+            db.query(Session)
+            .filter(Session.report_status == "processing")
+            .all()
+        )
+        return [(s.id, s.audio_path) for s in rows if s.audio_path]
+    finally:
+        db.close()
+
+
+def process_audio_session(session_id: int, audio_path: str) -> None:
+    """Background task: transcribe the uploaded audio, then generate the report.
+
+    Runs after the upload response is sent. Uses its own DB session and moves the
+    Session through report_status: processing -> generated | pending_key | error.
+    """
+    from ..database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        session = db.get(Session, session_id)
+        if session is None:
+            return
+
+        try:
+            transcript = transcribe(audio_path)
+        except TranscriptionError as exc:
+            session.report_status = "error"
+            session.report_error = str(exc)
+            db.commit()
+            return
+
+        session.transcript = transcript
+        if provider_is_configured():
+            try:
+                apply_report_to_session(session, generate_report(transcript))
+            except LLMError as exc:
+                mark_session_error(session, str(exc))
+        else:
+            mark_session_pending_key(session)
+        db.commit()
+    finally:
+        db.close()
